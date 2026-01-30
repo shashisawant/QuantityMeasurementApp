@@ -1,5 +1,5 @@
 package org.example;
-public class QuantityMeasurementAppFeet {
+public class QuantityMeasurementApp {
 
     public static class Feet{
         private final double value;
@@ -22,6 +22,7 @@ public class QuantityMeasurementAppFeet {
         }
 
     }
+
     public static void main(String[] args){
         Feet feet1 = new Feet(5.0);
         Feet feet2 = new Feet(5.0);
