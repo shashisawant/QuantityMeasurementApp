@@ -3,19 +3,19 @@ package org.example;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
-class QuantityMeasurementAppTest {
+class QuantityMeasurementAppFeetTest {
 
     @Test
     void givenSameFeetValue_whenCompared_shouldReturnTrue(){
-        QuantityMeasurementApp.Feet feet1 = new  QuantityMeasurementApp.Feet(5.0);
-        QuantityMeasurementApp.Feet feet2 = new  QuantityMeasurementApp.Feet(5.0);
+        QuantityMeasurementAppFeet.Feet feet1 = new  QuantityMeasurementAppFeet.Feet(5.0);
+        QuantityMeasurementAppFeet.Feet feet2 = new  QuantityMeasurementAppFeet.Feet(5.0);
         assertEquals(feet1, feet2);
     }
 
     @Test
     void givenSameFeetValue_whenCompared_shouldReturnFalse(){
-        QuantityMeasurementApp.Feet feet1 = new  QuantityMeasurementApp.Feet(5.0);
-        QuantityMeasurementApp.Feet feet2 = new  QuantityMeasurementApp.Feet(5.6);
+        QuantityMeasurementAppFeet.Feet feet1 = new  QuantityMeasurementAppFeet.Feet(5.0);
+        QuantityMeasurementAppFeet.Feet feet2 = new  QuantityMeasurementAppFeet.Feet(5.6);
         assertNotEquals(feet1, feet2);
     }
 
@@ -23,13 +23,13 @@ class QuantityMeasurementAppTest {
 
     @Test
     void testEquality_NullComparison() {
-        QuantityMeasurementApp.Feet feet1 = new  QuantityMeasurementApp.Feet(5.0);
+        QuantityMeasurementAppFeet.Feet feet1 = new  QuantityMeasurementAppFeet.Feet(5.0);
         assertFalse(feet1.equals(null), "A value must not be equal to null");
     }
 
     @Test
     void testEquality_SameReference() {
-        QuantityMeasurementApp.Feet feet1 = new  QuantityMeasurementApp.Feet(5.0);
+        QuantityMeasurementAppFeet.Feet feet1 = new  QuantityMeasurementAppFeet.Feet(5.0);
 
         assertTrue(feet1.equals(feet1), "Object must be equal to itself (reflexivity)");
     }
@@ -40,14 +40,14 @@ class QuantityMeasurementAppTest {
 
         @Test
         void shouldParseNumericString() {
-            QuantityMeasurementApp.Feet parsed = parseFeet("  1.0 ");
-            assertEquals(new  QuantityMeasurementApp.Feet(1.0), parsed);
+            QuantityMeasurementAppFeet.Feet parsed = parseFeet("  1.0 ");
+            assertEquals(new  QuantityMeasurementAppFeet.Feet(1.0), parsed);
         }
 
-    QuantityMeasurementApp.Feet parseFeet(String input) {
+    QuantityMeasurementAppFeet.Feet parseFeet(String input) {
         try {
             double v = Double.parseDouble(input.trim());
-            QuantityMeasurementApp.Feet feet1 = new  QuantityMeasurementApp.Feet(v);
+            QuantityMeasurementAppFeet.Feet feet1 = new  QuantityMeasurementAppFeet.Feet(v);
 
             return feet1;
         } catch (Exception ex) {

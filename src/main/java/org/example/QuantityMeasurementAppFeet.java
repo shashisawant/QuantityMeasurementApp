@@ -1,5 +1,5 @@
 package org.example;
-public class QuantityMeasurementApp {
+public class QuantityMeasurementAppFeet {
 
     public static class Feet{
         private final double value;
