@@ -1,6 +1,7 @@
 package org.example;
 public class QuantityMeasurementApp {
 
+
     public static class Feet{
         private final double value;
         public Feet(double value)
@@ -72,6 +73,11 @@ public class QuantityMeasurementApp {
     }
 
     private static LengthUnit parseUnit(String unit) {
+
+        if (unit == null) {
+            throw new IllegalArgumentException("Unit cannot be null");
+        }
+
         switch (unit.toLowerCase()) {
             case "ft":
             case "feet":
@@ -81,6 +87,18 @@ public class QuantityMeasurementApp {
             case "inch":
             case "inches":
                 return LengthUnit.INCH;
+
+
+            case "yd":
+            case "yard":
+            case "yards":
+                return LengthUnit.YARD;
+
+            case "cm":
+            case "centimeter":
+            case "centimeters":
+                return LengthUnit.CM;
+
 
             default:
                 throw new IllegalArgumentException("Unsupported unit: " + unit);
@@ -106,8 +124,15 @@ public class QuantityMeasurementApp {
         System.out.println(compare("3.0", "ft", "36.0", "in")); // true
         System.out.println(compare("2.5", "ft", "30.0", "in")); // true
         System.out.println(compare("1.0", "ft", "11.0", "in")); // false
+
+
+
+        System.out.println(compare("1", "yd", "3", "ft"));      // true: 1 yd = 3 ft
+        System.out.println(compare("36", "in", "1", "yd"));     // true: 36 in = 1 yd
+        System.out.println(compare("30.48", "cm", "1", "ft"));  // true if you swap CM to 1/(2.54*12)
+        System.out.println(compare("2.54", "cm", "1", "in"));   // true if CM uses 1/(2.54*12)
+        System.out.println(compare("100", "cm", "1", "yd"));    // false
         */
 
     }
-
 }

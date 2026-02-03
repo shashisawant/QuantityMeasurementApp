@@ -29,4 +29,11 @@ public class QuantityLength {
     public int hashCode() {
         return Double.hashCode(toBaseUnit());
     }
+
+
+    @Override
+    public String toString() {
+        return value + " " + unit.name();
+    }
+
 }
