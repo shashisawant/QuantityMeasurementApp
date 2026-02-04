@@ -1,138 +1,86 @@
 package org.example;
-public class QuantityMeasurementApp {
+import java.util.Locale;
 
+public final class QuantityMeasurementApp {
 
-    public static class Feet{
-        private final double value;
-        public Feet(double value)
-        {
-            this.value=value;
-        }
+    private QuantityMeasurementApp() {}
 
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null || this.getClass() != obj.getClass()) {
-                return false;
-            }
-            Feet other = (Feet) obj;
-            return Double.compare(this.value, other.value) == 0;
-        }
+    /* -------------------- API: Demo methods as per your Use Case -------------------- */
 
+    /** Overloaded demo: create from primitives (value, fromUnit, toUnit). */
+    public static QuantityLength demonstrateLengthConversion(double value, LengthUnit fromUnit, LengthUnit toUnit) {
+        QuantityLength q = new QuantityLength(value, fromUnit);
+        return q.convertTo(toUnit);
     }
 
-    public static class Inch{
-        private int value;
-        public Inch(int value)
-        {
-            this.value=value;
-        }
-
-        public int toInch()
-        {
-            return value;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null || this.getClass() != obj.getClass()) {
-                return false;
-            }
-            Inch inch = (Inch) obj;
-            return value == inch.value;
-        }
-
+    /** Overloaded demo: convert an existing QuantityLength instance. */
+    public static QuantityLength demonstrateLengthConversion(QuantityLength q, LengthUnit toUnit) {
+        return q.convertTo(toUnit);
     }
 
-    // Compares two quantities (value + unit)
-    public static boolean compare(String val1, String unit1, String val2, String unit2) {
-
-        double v1 = parse(val1);
-        double v2 = parse(val2);
-
-        LengthUnit u1 = parseUnit(unit1);
-        LengthUnit u2 = parseUnit(unit2);
-
-        QuantityLength q1 = new QuantityLength(v1, u1);
-        QuantityLength q2 = new QuantityLength(v2, u2);
-
-        return q1.equals(q2);
+    /** Demo: equality of two quantities. */
+    public static boolean demonstrateLengthEquality(QuantityLength a, QuantityLength b) {
+        return a.equals(b);
     }
 
-    private static double parse(String s) {
+    /** Optional: show numeric conversion with rounding. */
+    public static double demonstrateNumericConversion(double value, LengthUnit from, LengthUnit to,
+                                                      int scale) {
+        return QuantityLength.convert(value, from, to, scale, java.math.RoundingMode.HALF_UP);
+    }
+
+    /* -------------------- String-friendly helpers (for quick UI/tests) -------------------- */
+
+    public static boolean compare(String v1, String u1, String v2, String u2) {
+        double d1 = parseNumber(v1);
+        double d2 = parseNumber(v2);
+        LengthUnit lu1 = parseUnit(u1);
+        LengthUnit lu2 = parseUnit(u2);
+        return new QuantityLength(d1, lu1).equals(new QuantityLength(d2, lu2));
+    }
+
+    public static double convert(String value, String fromUnit, String toUnit) {
+        double v = parseNumber(value);
+        LengthUnit from = parseUnit(fromUnit);
+        LengthUnit to = parseUnit(toUnit);
+        return QuantityLength.convert(v, from, to);
+    }
+
+    /* -------------------- Parsing & validation -------------------- */
+
+    private static double parseNumber(String s) {
+        if (s == null) throw new IllegalArgumentException("Input value cannot be null");
         try {
             return Double.parseDouble(s.trim());
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid numeric input: " + s);
+        } catch (NumberFormatException nfe) {
+            throw new IllegalArgumentException("Non-numeric input: '" + s + "'", nfe);
         }
     }
 
-    private static LengthUnit parseUnit(String unit) {
-
-        if (unit == null) {
-            throw new IllegalArgumentException("Unit cannot be null");
-        }
-
-        switch (unit.toLowerCase()) {
-            case "ft":
-            case "feet":
-                return LengthUnit.FEET;
-
-            case "in":
-            case "inch":
-            case "inches":
-                return LengthUnit.INCH;
-
-
-            case "yd":
-            case "yard":
-            case "yards":
-                return LengthUnit.YARD;
-
-            case "cm":
-            case "centimeter":
-            case "centimeters":
-                return LengthUnit.CM;
-
-
-            default:
-                throw new IllegalArgumentException("Unsupported unit: " + unit);
+    /** Accepts ft/feet/foot, in/inch/inches, yd/yard/yards, cm/centimeter/centimeters. */
+    static LengthUnit parseUnit(String unit) {
+        if (unit == null) throw new IllegalArgumentException("Unit cannot be null");
+        switch (unit.trim().toLowerCase(Locale.ROOT)) {
+            case "ft": case "feet": case "foot": return LengthUnit.FEET;
+            case "in": case "inch": case "inches": return LengthUnit.INCH;
+            case "yd": case "yard": case "yards": return LengthUnit.YARD;
+            case "cm": case "centimeter": case "centimeters": return LengthUnit.CM;
+            default: throw new IllegalArgumentException("Unsupported unit: " + unit);
         }
     }
 
+    /* -------------------- Quick demo -------------------- */
+    public static void main(String[] args) {
+        // UC5 conversion examples
+        System.out.println(demonstrateLengthConversion(2.0, LengthUnit.YARD, LengthUnit.FEET)); // ~ 6.0 FEET
+        System.out.println(demonstrateLengthConversion(new QuantityLength(36.0, LengthUnit.INCH), LengthUnit.YARD)); // ~ 1.0 YARD
 
-    public static void main(String[] args){
-/*        boolean result = false;
-        Feet feet1 = new Feet(5.0);
-        Feet feet2 = new Feet(5.0);
-        result = feet1.equals(feet2);
-        System.out.println("Are both mesurement equal? - "+result);
+        // Using 0.393701 path:
+        System.out.println(convert("1", "cm", "in"));  // -> ~0.393701
+        System.out.println(convert("30.48", "cm", "ft")); // ~ 1.0 (may be off by tiny fp drift if printed with many decimals)
 
-        Inch inch1 = new Inch(5);
-        Inch inch2 = new Inch(5);
-        result = inch1.equals(inch2);
-        System.out.println("Are both mesurement equal? - "+result);
-
-
-        System.out.println(compare("1.0", "ft", "12.0", "in")); // true
-        System.out.println(compare("2.0", "ft", "24.0", "in")); // true
-        System.out.println(compare("3.0", "ft", "36.0", "in")); // true
-        System.out.println(compare("2.5", "ft", "30.0", "in")); // true
-        System.out.println(compare("1.0", "ft", "11.0", "in")); // false
-
-
-
-        System.out.println(compare("1", "yd", "3", "ft"));      // true: 1 yd = 3 ft
-        System.out.println(compare("36", "in", "1", "yd"));     // true: 36 in = 1 yd
-        System.out.println(compare("30.48", "cm", "1", "ft"));  // true if you swap CM to 1/(2.54*12)
-        System.out.println(compare("2.54", "cm", "1", "in"));   // true if CM uses 1/(2.54*12)
-        System.out.println(compare("100", "cm", "1", "yd"));    // false
-        */
-
+        // Equality demo (exact)
+        System.out.println(compare("1", "yd", "3", "ft"));    // true
+        System.out.println(compare("36", "in", "1", "yd"));   // true
     }
 }
