@@ -1,7 +1,6 @@
 package org.example;
 public class QuantityMeasurementApp {
 
-
     public static class Feet{
         private final double value;
         public Feet(double value)
@@ -49,6 +48,25 @@ public class QuantityMeasurementApp {
 
     }
 
+    public static QuantityLength demonstrateLengthConversion(double value, LengthUnit fromUnit, LengthUnit toUnit) {
+        QuantityLength q = new QuantityLength(value, fromUnit);
+        return q.convertTo(toUnit);
+    }
+
+    /** Overloaded demo: convert an existing QuantityLength instance. */
+    public static QuantityLength demonstrateLengthConversion(QuantityLength q, LengthUnit toUnit) {
+        return q.convertTo(toUnit);
+    }
+
+    /** Demo: equality of two quantities. */
+    public static boolean demonstrateLengthEquality(QuantityLength a, QuantityLength b) {
+        return a.equals(b);
+    }
+
+    public static double demonstrateNumericConversion(double value, LengthUnit from, LengthUnit to,
+                                                      int scale) {
+        return QuantityLength.convert(value, from, to, scale, java.math.RoundingMode.HALF_UP);
+    }
     // Compares two quantities (value + unit)
     public static boolean compare(String val1, String unit1, String val2, String unit2) {
 
@@ -69,6 +87,22 @@ public class QuantityMeasurementApp {
             return Double.parseDouble(s.trim());
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid numeric input: " + s);
+        }
+    }
+
+    public static double convert(String value, String fromUnit, String toUnit) {
+        double v = parseNumber(value);
+        LengthUnit from = parseUnit(fromUnit);
+        LengthUnit to = parseUnit(toUnit);
+        return QuantityLength.convert(v, from, to);
+    }
+
+    private static double parseNumber(String s) {
+        if (s == null) throw new IllegalArgumentException("Input value cannot be null");
+        try {
+            return Double.parseDouble(s.trim());
+        } catch (NumberFormatException nfe) {
+            throw new IllegalArgumentException("Non-numeric input: '" + s + "'", nfe);
         }
     }
 
@@ -105,6 +139,23 @@ public class QuantityMeasurementApp {
         }
     }
 
+    public static QuantityLength add(String v1, String u1, String v2, String u2) {
+        double d1 = parseNumber(v1);
+        double d2 = parseNumber(v2);
+        LengthUnit lu1 = parseUnit(u1);
+        LengthUnit lu2 = parseUnit(u2);
+        return QuantityLength.add(new QuantityLength(d1, lu1), new QuantityLength(d2, lu2));
+    }
+
+    /** Add two (value,unit) pairs; result in explicit target unit. */
+    public static QuantityLength add(String v1, String u1, String v2, String u2, String targetUnit) {
+        double d1 = parseNumber(v1);
+        double d2 = parseNumber(v2);
+        LengthUnit lu1 = parseUnit(u1);
+        LengthUnit lu2 = parseUnit(u2);
+        LengthUnit target = parseUnit(targetUnit);
+        return QuantityLength.add(d1, lu1, d2, lu2, target);
+    }
 
     public static void main(String[] args){
 /*        boolean result = false;
@@ -134,5 +185,9 @@ public class QuantityMeasurementApp {
         System.out.println(compare("100", "cm", "1", "yd"));    // false
         */
 
+        System.out.println(add("1", "ft", "12", "in"));       // -> 2.0 FEET
+        System.out.println(add("1", "yd", "3", "ft"));        // -> 2.0 YARD (by default, unit of first operand)
+        System.out.println(add("24", "in", "1", "ft", "in")); // -> 36.0 INCH
+        System.out.println(add("30.48", "cm", "0", "in", "ft")); // ≈ 1.0 FEET (with 0.393701 path, tiny drift possible)
     }
 }

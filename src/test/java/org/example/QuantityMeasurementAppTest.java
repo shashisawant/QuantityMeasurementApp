@@ -338,4 +338,248 @@ class QuantityMeasurementAppTest {
                 QuantityMeasurementApp.compare("2.0", "YARDS", "72.0", "INCHES"));
     }
 
+
+    //-----------------------------UC5-------------------------
+    private static final double EPS = 1e-9;
+    // 1. testConversion_FeetToInches()
+    @Test
+    @DisplayName("1) Feet → Inches: 1 ft = 12 in")
+    void testConversion_FeetToInches() {
+        double actual = QuantityLength.convert(1.0, LengthUnit.FEET, LengthUnit.INCH);
+        assertEquals(12.0, actual, EPS);
+    }
+
+    // 2. testConversion_InchesToFeet()
+    @Test
+    @DisplayName("2) Inches → Feet: 24 in = 2 ft")
+    void testConversion_InchesToFeet() {
+        double actual = QuantityLength.convert(24.0, LengthUnit.INCH, LengthUnit.FEET);
+        assertEquals(2.0, actual, EPS);
+    }
+
+    // 3. testConversion_YardsToInches()
+    @Test
+    @DisplayName("3) Yards → Inches: 1 yd = 36 in")
+    void testConversion_YardsToInches() {
+        double actual = QuantityLength.convert(1.0, LengthUnit.YARD, LengthUnit.INCH);
+        assertEquals(36.0, actual, EPS);
+    }
+
+    // 4. testConversion_InchesToYards()
+    @Test
+    @DisplayName("4) Inches → Yards: 72 in = 2 yd")
+    void testConversion_InchesToYards() {
+        double actual = QuantityLength.convert(72.0, LengthUnit.INCH, LengthUnit.YARD);
+        assertEquals(2.0, actual, EPS);
+    }
+
+    // 5. testConversion_CentimetersToInches()
+    @Test
+    @DisplayName("5) Centimeters → Inches: 2.54 cm ≈ 1 in (within epsilon when CM=0.393701)")
+    void testConversion_CentimetersToInches() {
+        // With CM = 0.393701 inches, 2.54 cm * 0.393701 ≈ 0.99999954...
+        double actual = QuantityLength.convert(2.54, LengthUnit.CM, LengthUnit.INCH);
+        assertEquals(1.0, actual, 1e-6); // relaxed epsilon to accommodate rounding
+    }
+
+    // 6. testConversion_FeetToYard()
+    @Test
+    @DisplayName("6) Feet → Yards: 6 ft = 2 yd")
+    void testConversion_FeetToYard() {
+        double actual = QuantityLength.convert(6.0, LengthUnit.FEET, LengthUnit.YARD);
+        assertEquals(2.0, actual, EPS);
+    }
+
+    // 7. testConversion_RoundTrip_PreserveValue()
+    @Test
+    @DisplayName("7) Round-trip preserves value within tolerance: A→B→A ≈ original")
+    void testConversion_RoundTrip_PreserveValue() {
+        // Yard ↔ Inch
+        double v1 = 3.75; // arbitrary
+        double yToI = QuantityLength.convert(v1, LengthUnit.YARD, LengthUnit.INCH);
+        double iToY = QuantityLength.convert(yToI, LengthUnit.INCH, LengthUnit.YARD);
+        assertEquals(v1, iToY, EPS);
+        // CM ↔ Inch (use slightly looser epsilon due to 0.393701)
+        double v2 = 123.456;
+        double cToI = QuantityLength.convert(v2, LengthUnit.CM, LengthUnit.INCH);
+        double iToC = QuantityLength.convert(cToI, LengthUnit.INCH, LengthUnit.CM);
+        assertEquals(v2, iToC, 1e-6);
+    }
+
+    // 8. testConversion_ZeroValue()
+    @Test
+    @DisplayName("8) Zero value: 0 ft → in = 0")
+    void testConversion_ZeroValue() {
+        double actual = QuantityLength.convert(0.0, LengthUnit.FEET, LengthUnit.INCH);
+        assertEquals(0.0, actual, EPS);
+    }
+
+    // 9. testConversion_NegativeValue()
+    @Test
+    @DisplayName("9) Negative value: -1 ft → in = -12 (behavior defined)")
+    void testConversion_NegativeValue() {
+        double actual = QuantityLength.convert(-1.0, LengthUnit.FEET, LengthUnit.INCH);
+        assertEquals(-12.0, actual, EPS);
+    }
+
+    // 10. testConversion_InvalidUnit_Throws()
+    @Test
+    @DisplayName("10) Invalid unit: null source/target should throw IllegalArgumentException")
+    void testConversion_InvalidUnit_Throws() {
+        assertThrows(IllegalArgumentException.class,
+                () -> QuantityLength.convert(1.0, null, LengthUnit.INCH));
+        assertThrows(IllegalArgumentException.class,
+                () -> QuantityLength.convert(1.0, LengthUnit.FEET, null));
+    }
+
+    // 11. testConversion_NaNOrInfinite_Throws()
+    @Test
+    @DisplayName("11) NaN/Infinite input should throw")
+    void testConversion_NaNOrInfinite_Throws() {
+        assertThrows(IllegalArgumentException.class,
+                () -> QuantityLength.convert(Double.NaN, LengthUnit.FEET, LengthUnit.INCH));
+        assertThrows(IllegalArgumentException.class,
+                () -> QuantityLength.convert(Double.POSITIVE_INFINITY, LengthUnit.FEET, LengthUnit.INCH));
+        assertThrows(IllegalArgumentException.class,
+                () -> QuantityLength.convert(Double.NEGATIVE_INFINITY, LengthUnit.FEET, LengthUnit.INCH));
+    }
+
+    // 12. testConversion_PrecisionTolerance()
+    @Test
+    @DisplayName("12) Precision tolerance: compare using small epsilon")
+    void testConversion_PrecisionTolerance() {
+        // Example: 30.48 cm should be ~ 1 ft (with 0.393701 in/cm, tiny drift possible)
+        double feet = QuantityLength.convert(30.48, LengthUnit.CM, LengthUnit.FEET);
+        assertEquals(1.0, feet, 1e-6);
+    }
+
+    //-------------------------UC6-------------------
+
+
+    private static final double CM_EPS = 1e-5;   // or 2e-6 if you want tighter
+
+    // 1. testAddition_SameUnit_FeetPlusFeet()
+    @Test
+    @DisplayName("1) Same unit: 1 ft + 2 ft = 3 ft")
+    void testAddition_SameUnit_FeetPlusFeet() {
+        QuantityLength r = new QuantityLength(1.0, LengthUnit.FEET)
+                .add(new QuantityLength(2.0, LengthUnit.FEET));
+        assertEquals(LengthUnit.FEET, r.unit());
+        assertEquals(3.0, r.value(), EPS);
+    }
+
+    // 2. testAddition_SameUnit_InchPlusInch()
+    @Test
+    @DisplayName("2) Same unit: 6 in + 6 in = 12 in")
+    void testAddition_SameUnit_InchPlusInch() {
+        QuantityLength r = new QuantityLength(6.0, LengthUnit.INCH)
+                .add(new QuantityLength(6.0, LengthUnit.INCH));
+        assertEquals(LengthUnit.INCH, r.unit());
+        assertEquals(12.0, r.value(), EPS);
+    }
+
+    // 3. testAddition_CrossUnit_InFeetPlusInches()
+    @Test
+    @DisplayName("3) Cross-unit: 1 ft + 12 in = 2 ft (result in feet)")
+    void testAddition_CrossUnit_InFeetPlusInches() {
+        QuantityLength r = new QuantityLength(1.0, LengthUnit.FEET)
+                .add(new QuantityLength(12.0, LengthUnit.INCH)); // default result unit = feet
+        assertEquals(LengthUnit.FEET, r.unit());
+        assertEquals(2.0, r.value(), EPS);
+    }
+
+    // 4. testAddition_CrossUnit_InchPlusFeet()
+    @Test
+    @DisplayName("4) Cross-unit: 12 in + 1 ft = 24 in (result in inches)")
+    void testAddition_CrossUnit_InchPlusFeet() {
+        QuantityLength r = new QuantityLength(12.0, LengthUnit.INCH)
+                .add(new QuantityLength(1.0, LengthUnit.FEET)); // default result unit = inches
+        assertEquals(LengthUnit.INCH, r.unit());
+        assertEquals(24.0, r.value(), EPS);
+    }
+
+    // 5. testAddition_CrossUnit_YardPlusFeet()
+    @Test
+    @DisplayName("5) Cross-unit: 1 yd + 3 ft = 2 yd (result in yards)")
+    void testAddition_CrossUnit_YardPlusFeet() {
+        QuantityLength r = new QuantityLength(1.0, LengthUnit.YARD)
+                .add(new QuantityLength(3.0, LengthUnit.FEET)); // result unit = yards
+        assertEquals(LengthUnit.YARD, r.unit());
+        assertEquals(2.0, r.value(), EPS);
+    }
+
+    // 6. testAddition_CrossUnit_CentimeterPlusInch()
+    @Test
+    @DisplayName("6) Cross-unit: 2.54 cm + 1 in ≈ 5.08 cm (within epsilon, CM=0.393701)")
+    void testAddition_CrossUnit_CentimeterPlusInch() {
+        // Default result unit = first operand (CM)
+        QuantityLength r = new QuantityLength(2.54, LengthUnit.CM)
+                .add(new QuantityLength(1.0, LengthUnit.INCH));
+        assertEquals(LengthUnit.CM, r.unit());
+        assertEquals(5.08, r.value(), CM_EPS);
+    }
+
+    // 7. testAddition_Commutativity()
+    @Test
+    @DisplayName("7) Commutativity: a+b == b+a (when compared in a common unit)")
+    void testAddition_Commutativity() {
+        QuantityLength a = new QuantityLength(1.0, LengthUnit.FEET);
+        QuantityLength b = new QuantityLength(12.0, LengthUnit.INCH);
+
+        QuantityLength ab = a.add(b);                       // result in FEET
+        QuantityLength ba = b.add(a).convertTo(LengthUnit.FEET); // convert result to FEET
+
+        assertEquals(ab.value(), ba.value(), EPS);
+        assertEquals(LengthUnit.FEET, ab.unit());
+        assertEquals(2.0, ab.value(), EPS);
+    }
+
+    // 8. testAddition_WithZero()
+    @Test
+    @DisplayName("8) Identity: 5 ft + 0 in = 5 ft")
+    void testAddition_WithZero() {
+        QuantityLength r = new QuantityLength(5.0, LengthUnit.FEET)
+                .add(new QuantityLength(0.0, LengthUnit.INCH));
+        assertEquals(LengthUnit.FEET, r.unit());
+        assertEquals(5.0, r.value(), EPS);
+    }
+
+    // 9. testAddition_NegativeValues()
+    @Test
+    @DisplayName("9) Negative: 5 ft + (-2 ft) = 3 ft")
+    void testAddition_NegativeValues() {
+        QuantityLength r = new QuantityLength(5.0, LengthUnit.FEET)
+                .add(new QuantityLength(-2.0, LengthUnit.FEET));
+        assertEquals(LengthUnit.FEET, r.unit());
+        assertEquals(3.0, r.value(), EPS);
+    }
+
+    // 10. testAddition_NullSecondOperand()
+    @Test
+    @DisplayName("10) Null second operand should throw IllegalArgumentException")
+    void testAddition_NullSecondOperand() {
+        QuantityLength first = new QuantityLength(1.0, LengthUnit.FEET);
+        assertThrows(IllegalArgumentException.class, () -> first.add(null));
+    }
+
+    // 11. testAddition_LargeValues()
+    @Test
+    @DisplayName("11) Large values: 1e6 ft + 1e6 ft = 2e6 ft")
+    void testAddition_LargeValues() {
+        QuantityLength r = new QuantityLength(1_000_000.0, LengthUnit.FEET)
+                .add(new QuantityLength(1_000_000.0, LengthUnit.FEET));
+        assertEquals(LengthUnit.FEET, r.unit());
+        assertEquals(2_000_000.0, r.value(), EPS);
+    }
+
+    // 12. testAddition_PrecisionEpsilon()
+    @Test
+    @DisplayName("12) Precision: 0.1 ft + 0.2 ft ≈ 0.3 ft (within epsilon)")
+    void testAddition_PrecisionEpsilon() {
+        QuantityLength r = new QuantityLength(0.1, LengthUnit.FEET)
+                .add(new QuantityLength(0.2, LengthUnit.FEET));
+        assertEquals(LengthUnit.FEET, r.unit());
+        assertEquals(0.3, r.value(), 1e-9); // allow tiny fp drift
+    }
+
 }
