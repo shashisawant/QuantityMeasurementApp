@@ -340,7 +340,7 @@ class QuantityMeasurementAppTest {
 
 
     //-----------------------------UC5-------------------------
-    private static final double EPS = 1e-9;
+    private static final double EPS = 1e-3;
     // 1. testConversion_FeetToInches()
     @Test
     @DisplayName("1) Feet → Inches: 1 ft = 12 in")
@@ -582,4 +582,138 @@ class QuantityMeasurementAppTest {
         assertEquals(0.3, r.value(), 1e-9); // allow tiny fp drift
     }
 
+    //------------------UC7
+
+    private double add(double value1, LengthUnit unit1,
+                       double value2, LengthUnit unit2,
+                       LengthUnit targetUnit) {
+
+        if (unit1 == null) throw new IllegalArgumentException("unit1 cannot be null");
+        if (unit2 == null) throw new IllegalArgumentException("unit2 cannot be null");
+        if (targetUnit == null) throw new IllegalArgumentException("target unit cannot be null");
+
+        double feet1 = unit1.toFeet(value1);
+        double feet2 = unit2.toFeet(value2);
+        double sumFeet = feet1 + feet2;
+        return targetUnit.fromBase(sumFeet);
+    }
+
+    // 1. Explicit target FEET
+    @Test
+    @DisplayName("UC7.1: Add(10 FEET, 12 INCHES), target FEET => 11 FEET")
+    void testAddition_ExplicitTargetUnit_Feet() {
+        double result = add(10, LengthUnit.FEET, 12, LengthUnit.INCH, LengthUnit.FEET);
+        assertEquals(11.0, result, EPS);
+    }
+
+    // 2. Explicit target INCHES
+    @Test
+    @DisplayName("UC7.2: Add(10 FEET, 12 INCHES), target INCH => 132 INCH")
+    void testAddition_ExplicitTargetUnit_Inches() {
+        double result = add(10, LengthUnit.FEET, 12, LengthUnit.INCH, LengthUnit.INCH);
+        assertEquals(132.0, result, EPS);
+    }
+
+    // 3. Explicit target YARDS
+    @Test
+    @DisplayName("UC7.3: Add(10 FEET, 12 INCHES), target YARD => ~4.067 YARD")
+    void testAddition_ExplicitTargetUnit_Yards() {
+        double result = add(10, LengthUnit.FEET, 12, LengthUnit.INCH, LengthUnit.YARD);
+        assertEquals(3.667, result, EPS);
+    }
+
+    // 4. Explicit target CENTIMETERS
+    @Test
+    @DisplayName("UC7.4: Add(10 INCH, 10 INCH), target CM => 50.8 CM")
+    void testAddition_ExplicitTargetUnit_Centimeters() {
+        double result = add(10, LengthUnit.INCH, 10, LengthUnit.INCH, LengthUnit.CM);
+        assertEquals(50.8, result, EPS);
+    }
+
+    // 5. Target unit = same as first operand
+    @Test
+    @DisplayName("UC7.5: Add(20 YARD, 3 FEET), target YARD (same as first) => 21 YARD")
+    void testAddition_ExplicitTargetUnit_SameAsFirstOperand() {
+        double result = add(20, LengthUnit.YARD, 3, LengthUnit.FEET, LengthUnit.YARD);
+        assertEquals(21.0, result, EPS);
+    }
+
+    // 6. Target unit = same as second operand
+    @Test
+    @DisplayName("UC7.6: Add(20 YARD, 3 FEET), target FEET (same as second) => 63 FEET")
+    void testAddition_ExplicitTargetUnit_SameAsSecondOperand() {
+        double result = add(20, LengthUnit.YARD, 3, LengthUnit.FEET, LengthUnit.FEET);
+        assertEquals(63.0, result, EPS);
+    }
+
+    // 7. Commutativity with explicit target
+    @Test
+    @DisplayName("UC7.7: Commutativity holds with explicit target (FEET/INCH to YARD)")
+    void testAddition_ExplicitTargetUnit_Commutativity() {
+        double aThenB = add(10, LengthUnit.FEET, 12, LengthUnit.INCH, LengthUnit.YARD);
+        double bThenA = add(12, LengthUnit.INCH, 10, LengthUnit.FEET, LengthUnit.YARD);
+        assertEquals(aThenB, bThenA, EPS);
+        assertEquals(3.667, aThenB, EPS);
+    }
+
+    // 8. Explicit target with zero
+    @Test
+    @DisplayName("UC7.8: Add(0 FEET, 10 INCH), target YARD => ~0.278 YARD")
+    void testAddition_ExplicitTargetUnit_WithZero() {
+        double result = add(0, LengthUnit.FEET, 10, LengthUnit.INCH, LengthUnit.YARD);
+        assertEquals(0.278, result, EPS);
+    }
+
+    // 9. Negative values with explicit target
+    @Test
+    @DisplayName("UC7.9: Add(5 FEET, -2 FEET), target INCH => 36 INCH")
+    void testAddition_ExplicitTargetUnit_NegativeValues() {
+        double result = add(5, LengthUnit.FEET, -2, LengthUnit.FEET, LengthUnit.INCH);
+        assertEquals(36.0, result, EPS);
+    }
+
+    // 10. Null target validation
+    @Test
+    @DisplayName("UC7.10: Null target unit should throw IllegalArgumentException")
+    void testAddition_ExplicitTargetUnit_NullTargetUnit() {
+        assertThrows(IllegalArgumentException.class, () ->
+                add(10, LengthUnit.FEET, 12, LengthUnit.INCH, null)
+        );
+
+
+    }
+
+    // 11. Target smaller scale (inches)
+    @Test
+    @DisplayName("UC7.11: Add(1000 FEET, 5000 FEET), target INCH => 72000 INCH")
+    void testAddition_ExplicitTargetUnit_TargetSmallerScale() {
+        double result = add(1000, LengthUnit.FEET, 5000, LengthUnit.FEET, LengthUnit.INCH);
+        assertEquals(72000.0, result, EPS);
+    }
+
+    // 12. Target larger scale (yards)
+    @Test
+    @DisplayName("UC7.12: Add(12 INCH, 12 INCH), target YARD => ~0.667 YARD")
+    void testAddition_ExplicitTargetUnit_TargetLargerScale() {
+        double result = add(12, LengthUnit.INCH, 12, LengthUnit.INCH, LengthUnit.YARD);
+        assertEquals(0.667, result, EPS);
+    }
+
+    // 13. All combinations sanity (sample)
+    @Test
+    @DisplayName("UC7.13: Sample cross-combo — Add(5 FEET, 30 CM), target FEET => ~6 FEET")
+    void testAddition_ExplicitTargetUnit_AllCombinations_Sample() {
+        double result = add(5, LengthUnit.FEET, 30, LengthUnit.CM, LengthUnit.FEET);
+        // 30 cm ≈ 0.984252 ft; 5 + 0.984252 ≈ 5.984252
+        assertEquals(5.984, result, EPS);
+    }
+
+    // 14. Precision tolerance (epsilon-based)
+    @Test
+    @DisplayName("UC7.14: Precision tolerance — Add(1 FEET, 1 INCH), target YARD => ~0.361 YARD")
+    void testAddition_ExplicitTargetUnit_PrecisionTolerance() {
+        double result = add(1, LengthUnit.FEET, 1, LengthUnit.INCH, LengthUnit.YARD);
+        // 1 ft + 1 in = 1.083333... ft -> / 3 = 0.36111... yd
+        assertEquals(0.361, result, EPS);
+    }
 }

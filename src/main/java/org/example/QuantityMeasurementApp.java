@@ -158,6 +158,19 @@ public class QuantityMeasurementApp {
     }
 
     public static void main(String[] args){
+
+        QuantityLength a = QuantityLength.of(1.0, LengthUnit.FEET);       // 1 ft
+        QuantityLength b = QuantityLength.of(12.0, LengthUnit.INCH);      // 12 in = 1 ft
+
+        // Sum in yards (explicit target)
+        QuantityLength sumYd = QuantityLength.add(a, b, LengthUnit.YARD);
+        System.out.println(sumYd); // ~0.666667 YARD (i.e., 2 ft = 2/3 yd)
+
+        // Mixed raw values with CENTIMETER using 0.393701 (cm→inch) internally
+        QuantityLength sumCmTarget =
+                QuantityLength.add(30.48, LengthUnit.CM, 6, LengthUnit.INCH, LengthUnit.CM);
+        System.out.println(sumCmTarget); // Expect ~61.0 CENTIMETER (30.48 cm + 6 in (15.24 cm))
+
 /*        boolean result = false;
         Feet feet1 = new Feet(5.0);
         Feet feet2 = new Feet(5.0);
@@ -191,3 +204,4 @@ public class QuantityMeasurementApp {
         System.out.println(add("30.48", "cm", "0", "in", "ft")); // ≈ 1.0 FEET (with 0.393701 path, tiny drift possible)
     }
 }
+
